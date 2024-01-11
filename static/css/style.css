@@ -1,0 +1,17 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.select-wrapper {
+    text-align: center;
+    display: block;
+    margin: 0 auto;
+    margin-top: 10em;
+}
+
+select {
+    padding: 11px;
+    color: blue;
+}
+
+
