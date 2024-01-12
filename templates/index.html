@@ -8,14 +8,16 @@
 </head>
 <body>
     <div class="select-wrapper">
-    <label for="stocks">Choose a stock:</label>
+    <label for="stocks" id="stockslabel">Choose a stock:</label>
     <select name="stocks" id="stocks" form="stocksform">
         <option value="AAPL">AAPL</option>
         <option value="AMZN">AMZN</option>
+        <option value="BINANCE:BTCUSDT">BINANCE:BTCUSDT</option>
+        <option value="IC MARKETS:1">IC MARKETS:1</option>
         </select>
 
     <form action = "/result" method = "POST" id="stocksform">
-        <input type="submit">
+        <input type="submit" id="submit">
      </form>
 
 

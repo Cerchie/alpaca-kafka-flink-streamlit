@@ -1,17 +1,55 @@
 body {
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, Inter, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 .select-wrapper {
-    text-align: center;
-    display: block;
     margin: 0 auto;
     margin-top: 10em;
+    width: 100%;
+    min-width: 15ch;
+    max-width: 30ch;
+    border: 1px solid grey;
+    border-radius: 10px;
+    padding: 1em;
+    font-size: 1.25rem;
+    cursor: pointer;
+    line-height: 1.1;
+    background-color: #fff;
+    box-shadow: 10px 10px 5px lightblue;
 }
 
 select {
-    padding: 11px;
-    color: blue;
+    appearance: none;
+    background-color: transparent;
+    border: 1 px solid grey;
+    border-radius: 10px;
+    padding: .5em;
+    margin: 3em;
+    width: 60%;
+    font-family: inherit;
+    font-size: inherit;
+    cursor: inherit;
+    line-height: inherit;
+    outline: none;
+}
+
+#submit {
+margin-top: 5em;
+background-color: white; /* Green */
+border: 1px solid darkblue;
+border-radius: 10px;
+color: darkblue;
+padding: .5em;
+text-align: center;
+text-decoration: none;
+display: inline-block;
+font-size: 16px;
+font-weight: 100;
+font-family: -apple-system, BlinkMacSystemFont, Inter, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+#stockslabel {
+    font-family: -apple-system, BlinkMacSystemFont, Inter, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 
