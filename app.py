@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request
 from setupsocket import on_select
-import websocket
 
 app = Flask(__name__)
 
