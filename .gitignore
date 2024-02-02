@@ -13,3 +13,5 @@ __pycache__/
 *$py.class
 config.py
 srconfig.py
+
+./conf
