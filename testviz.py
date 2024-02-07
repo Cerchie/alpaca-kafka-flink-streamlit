@@ -9,7 +9,6 @@ from confluent_kafka import Consumer, KafkaError, KafkaException
 from setupsocket import on_select
 import numpy as np
 
-
 config_parser = ConfigParser(interpolation=None)
 config_file = open("config.properties", "r")
 config_parser.read_file(config_file)
