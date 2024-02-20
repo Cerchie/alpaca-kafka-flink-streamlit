@@ -9,13 +9,14 @@ from confluent_kafka import Consumer, KafkaError, KafkaException
 from setupsocket import on_select
 import numpy as np
 
+
 config_parser = ConfigParser(interpolation=None)
+
 config_file = open("config.properties", "r")
 config_parser.read_file(config_file)
 client_config = dict(config_parser["kafka_client"])
 
 consumer = Consumer(client_config)
-
 
 option = st.selectbox(
     "Which stock would you like to see data for?",
@@ -27,44 +28,52 @@ st.write("You selected:", option)
 
 # bar chart will display last several stock averages
 
-chart_data = pd.DataFrame(np.random.randn(3), columns=["a"])
+chart_data = pd.DataFrame(np.random.randn(3), columns=["None"])
 
-st.bar_chart(chart_data)
 
-if isinstance(option, str):
+async def call_producer_and_consume_backup_topic(option, consumer):
 
-    # We create the placeholder once
-    placeholder = st.empty()
+    if isinstance(option, str):
 
-    data = []
+        # We create the placeholder once
+        placeholder = st.empty()
 
-    while True:
-        try:
+        data = []
 
-            on_select(option)
+        await on_select(option)
 
-            consumer.subscribe(["tumble_interval"])
+        while True:
+            try:
 
-            msg = consumer.poll()
+                consumer.subscribe(["tumble_interval"])
 
-            if msg is None:
-                pass
+                msg = consumer.poll()
 
-            elif msg.error():
-                print("Consumer error: {}".format(msg.error()))
+                if msg is None:
+                    pass
 
-            print("Received message: {}".format(msg.value().decode("utf-8")))
+                elif msg.error():
+                    print("Consumer error: {}".format(msg.error()))
 
-            with placeholder:
-                data.append(msg.value().decode("utf-8"))
-                st.write(pd.DataFrame(data))
+                print("Received message: {}".format(msg.value().decode("utf-8")))
 
-            # It is important to exit the context of the placeholder in each step of the loop
-            # placeholder object should have the same methods for displaying data as st
-            # placeholder.dataframe(df)
+                with placeholder:
+                    data.append(msg.value().decode("utf-8"))
+                    st.write(pd.DataFrame(data))
 
-            # Close down consumer to commit final offsets.
+                # It is important to exit the context of the placeholder in each step of the loop
+                # placeholder object should have the same methods for displaying data as st
+                # placeholder.dataframe(df)
 
-        except KeyboardInterrupt:
-            print("Canceled by user.")
-            consumer.close()
+                # Close down consumer to commit final offsets.
+
+            except KeyboardInterrupt:
+                print("Canceled by user.")
+                consumer.close()
+
+
+async def main(option, consumer):
+
+    data = await call_producer_and_consume_backup_topic(option, consumer)
+
+    st.bar_chart(data)
