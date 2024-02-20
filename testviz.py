@@ -24,56 +24,49 @@ option = st.selectbox(
     index=None,
 )
 
-st.write("You selected:", option)
 
-# bar chart will display last several stock averages
+if isinstance(option, str):
 
-chart_data = pd.DataFrame(np.random.randn(3), columns=["None"])
+    st.write("You selected:", option)
 
+    # We create the placeholder once
+    placeholder = st.empty()
 
-async def call_producer_and_consume_backup_topic(option, consumer):
+    data = []
 
-    if isinstance(option, str):
+    on_select(option)
 
-        # We create the placeholder once
-        placeholder = st.empty()
+    while True:
+        try:
 
-        data = []
+            consumer.subscribe(["tumble_interval"])
 
-        await on_select(option)
+            msg = consumer.poll()
 
-        while True:
-            try:
+            if msg is None:
+                pass
 
-                consumer.subscribe(["tumble_interval"])
+            elif msg.error():
+                print("Consumer error: {}".format(msg.error()))
 
-                msg = consumer.poll()
+            print("Received message: {}".format(msg.value().decode("utf-8")))
 
-                if msg is None:
-                    pass
+            with placeholder:
+                data.append(msg.value().decode("utf-8"))
+                st.write(pd.DataFrame(data))
 
-                elif msg.error():
-                    print("Consumer error: {}".format(msg.error()))
+            st.bar_chart(data)
 
-                print("Received message: {}".format(msg.value().decode("utf-8")))
+            # It is important to exit the context of the placeholder in each step of the loop
+            # placeholder object should have the same methods for displaying data as st
+            # placeholder.dataframe(df)
 
-                with placeholder:
-                    data.append(msg.value().decode("utf-8"))
-                    st.write(pd.DataFrame(data))
+            # Close down consumer to commit final offsets.
 
-                # It is important to exit the context of the placeholder in each step of the loop
-                # placeholder object should have the same methods for displaying data as st
-                # placeholder.dataframe(df)
+        except KeyboardInterrupt:
+            print("Canceled by user.")
+            consumer.close()
 
-                # Close down consumer to commit final offsets.
-
-            except KeyboardInterrupt:
-                print("Canceled by user.")
-                consumer.close()
-
-
-async def main(option, consumer):
-
-    data = await call_producer_and_consume_backup_topic(option, consumer)
-
-    st.bar_chart(data)
+else:
+    chart_data = pd.DataFrame(np.random.randn(3), columns=["No data yet"])
+    st.bar_chart(chart_data)

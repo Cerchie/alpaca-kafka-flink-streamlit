@@ -30,31 +30,13 @@ def serialize_custom_data(custom_data, ctx):
 
 
 async def quote_data_handler(data, producer, stockname, json_serializer):
-    # quote data will arrive here
-    print(data)
 
-    await producer.produce(
-        topic=stockname,
-        key=stockname,
-        value=json_serializer(
-            data, SerializationContext(stockname, MessageField.VALUE)
-        ),
-        on_delivery=delivery_report,
-    )
-
-    await producer.flush()
-
-
-async def on_select(stockname):
-    print("onselect called")
     config_parser = ConfigParser(interpolation=None)
     config_file = open("config.properties", "r")
     config_parser.read_file(config_file)
     client_config = dict(config_parser["kafka_client"])
 
     producer = Producer(client_config)
-
-    wss_client = StockDataStream(config.ALPACA_KEY, config.ALPACA_SECRET)
 
     schema_registry_client = SchemaRegistryClient(srconfig.sr_config)
 
@@ -84,14 +66,26 @@ async def on_select(stockname):
     json_serializer = JSONSerializer(
         schema_str, schema_registry_client, serialize_custom_data
     )
+    # quote data will arrive here
+    print(data)
 
-    data = await wss_client.subscribe_quotes(quote_data_handler, stockname)
-
-    await quote_data_handler(
-        data=data,
-        producer=producer,
-        stockname=stockname,
-        json_serializer=json_serializer,
+    await producer.produce(
+        topic=stockname,
+        key=stockname,
+        value=json_serializer(
+            data, SerializationContext(stockname, MessageField.VALUE)
+        ),
+        on_delivery=delivery_report,
     )
+
+    producer.flush()
+
+
+async def on_select(stockname):
+    print("onselect called")
+
+    wss_client = StockDataStream(config.ALPACA_KEY, config.ALPACA_SECRET)
+
+    wss_client.subscribe_quotes(quote_data_handler, stockname)
 
     wss_client.run()
