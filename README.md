@@ -6,6 +6,8 @@ pip3 install alpaca-py
 
 pip3 install streamlit
 
+[sign up for alpaca[(https://alpaca.markets/) to get a key
+
 
 for configuration, you will need:
 
