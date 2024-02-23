@@ -6,6 +6,42 @@ pip3 install alpaca-py
 
 pip3 install streamlit
 
+
+for configuration, you will need:
+
+config.properties
+
+```
+[kafka_client]
+bootstrap.servers=
+security.protocol=SASL_SSL
+sasl.mechanisms=PLAIN
+sasl.username=
+sasl.password=
+
+group.id="stocks_consumer_group"
+
+# Best practice for higher availability in librdkafka clients prior to 1.7
+session.timeout.ms=45000
+```
+config.py
+```
+ALPACA_KEY = 
+ALPACA_SECRET = 
+FINNHUB_KEY =
+CC_KEY =
+CC_SECRET = 
+```
+
+srconfig.py
+```
+sr_config = {
+    "url": ,
+    "basic.auth.user.info": ,
+}
+
+```
+
 In Confluent Cloud, set up a new environment with topic named 'AAPL' and this value schema:
 
 ```
@@ -32,6 +68,8 @@ In Confluent Cloud, set up a new environment with topic named 'AAPL' and this va
   "type": "object"
 }
 ```
+
+You'll also need API keys for your schema registry and topic.
 
 Now, run streamlit testviz.py to produce some messages to that topic. 
 
