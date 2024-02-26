@@ -42,7 +42,6 @@ if isinstance(option, str):
             consumer.subscribe(["tumble_interval"])
 
             msg = consumer.poll()
-
             if msg is None:
                 pass
 
@@ -52,6 +51,7 @@ if isinstance(option, str):
             print("Received message: {}".format(msg.value().decode("utf-8")))
 
             with placeholder:
+                print(data)
                 data.append(msg.value().decode("utf-8"))
                 st.write(pd.DataFrame(data))
 
