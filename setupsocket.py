@@ -14,38 +14,17 @@ import json
 from alpaca.data.live import StockDataStream
 
 
-def on_select(stockname):
-    print("onselect called")
+# set up alpaca websocket to receive stock events
+wss_client = StockDataStream(config.ALPACA_KEY, config.ALPACA_SECRET)
 
-    def delivery_report(err, event):
-        if err is not None:
-            print(f'Delivery failed on reading for {event.key().decode("utf8")}: {err}')
-        else:
-            print(
-                f'reading for {event.key().decode("utf8")} produced to {event.topic()}'
-            )
+# set up kafka client
+config_parser = ConfigParser(interpolation=None)
+config_file = open("config.properties", "r")
+config_parser.read_file(config_file)
+client_config = dict(config_parser["kafka_client"])
 
-    def serialize_custom_data(custom_data, ctx):
-        print("serializer called")
-        return {
-            "bid_timestamp": str(custom_data.timestamp),
-            "price": int(custom_data.bid_price),
-            "symbol": custom_data.symbol,
-        }
-
-    async def quote_data_handler(data):
-        print("data handler called")
-        print(data)
-        config_parser = ConfigParser(interpolation=None)
-        config_file = open("config.properties", "r")
-        config_parser.read_file(config_file)
-        client_config = dict(config_parser["kafka_client"])
-
-        producer = Producer(client_config)
-
-        schema_registry_client = SchemaRegistryClient(srconfig.sr_config)
-
-        schema_str = """{
+# schema for producer matching one in AAPL topic in Confluent Cloud
+schema_str = """{
   "$id": "http://example.com/myURI.schema.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "additionalProperties": false,
@@ -68,9 +47,37 @@ def on_select(stockname):
   "type": "object"
 }"""
 
+
+def delivery_report(err, event):
+    if err is not None:
+        print(f'Delivery failed on reading for {event.key().decode("utf8")}: {err}')
+    else:
+        print(f'reading for {event.key().decode("utf8")} produced to {event.topic()}')
+
+
+def serialize_custom_data(custom_data, ctx):
+    print("serializer called")
+    return {
+        "bid_timestamp": str(custom_data.timestamp),
+        "price": int(custom_data.bid_price),
+        "symbol": custom_data.symbol,
+    }
+
+
+def on_select(stockname):
+
+    async def quote_data_handler(data):
+        print("data handler called")
+        print(data)
+
+        producer = Producer(client_config)
+
+        schema_registry_client = SchemaRegistryClient(srconfig.sr_config)
+
         json_serializer = JSONSerializer(
             schema_str, schema_registry_client, serialize_custom_data
         )
+
         # quote data will arrive here
         print(data)
 
@@ -82,13 +89,8 @@ def on_select(stockname):
             ),
             on_delivery=delivery_report,
         )
-        print(
-            stockname,
-            json_serializer(data, SerializationContext(stockname, MessageField.VALUE)),
-        )
-        producer.flush()
 
-    wss_client = StockDataStream(config.ALPACA_KEY, config.ALPACA_SECRET)
+        producer.flush()
 
     wss_client.subscribe_quotes(quote_data_handler, stockname)
 
