@@ -52,11 +52,10 @@ def delivery_report(err, event):
     if err is not None:
         print(f'Delivery failed on reading for {event.key().decode("utf8")}: {err}')
     else:
-        print(f'reading for {event.key().decode("utf8")} produced to {event.topic()}')
+        print(f"delivered new event from producer")
 
 
 def serialize_custom_data(custom_data, ctx):
-    print("serializer called")
     return {
         "bid_timestamp": str(custom_data.timestamp),
         "price": int(custom_data.bid_price),
@@ -67,8 +66,6 @@ def serialize_custom_data(custom_data, ctx):
 def on_select(stockname):
 
     async def quote_data_handler(data):
-        print("data handler called")
-        print(data)
 
         producer = Producer(client_config)
 
@@ -79,9 +76,9 @@ def on_select(stockname):
         )
 
         # quote data will arrive here
-        print(data)
+        # print(data)
 
-        await producer.produce(
+        producer.produce(
             topic=stockname,
             key=stockname,
             value=json_serializer(
