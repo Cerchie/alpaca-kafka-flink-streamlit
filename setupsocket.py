@@ -66,6 +66,8 @@ def serialize_custom_data(custom_data, ctx):
 def on_select(stockname):
 
     async def quote_data_handler(data):
+        print("data handler called")
+        print(data)
 
         producer = Producer(client_config)
 
@@ -78,7 +80,7 @@ def on_select(stockname):
         # quote data will arrive here
         # print(data)
 
-        producer.produce(
+        await producer.produce(
             topic=stockname,
             key=stockname,
             value=json_serializer(

@@ -56,53 +56,64 @@ def reset_offsets(consumer, partitions):
     )  # (re-)set consumer partition assignments and start consuming
 
 
-if isinstance(option, str):
+async def consume_and_write(placeholder):
+    if isinstance(option, str):
 
-    st.write("You selected:", option)
+        st.write("You selected:", option)
 
-    # We create the placeholder once
+        # We create the placeholder once
+        placeholder = st.empty()
+
+        # asyncio not implemented, consumer only works if producer is not triggered. need to get them on separate threads
+        await on_select(option)
+
+        for i in range(5):
+            try:
+                consumer.subscribe(["tumble_interval"], on_assign=reset_offsets)
+
+                msg = consumer.poll()
+
+                if msg is None:
+                    pass
+
+                elif msg.error():
+                    print("Consumer error: {}".format(msg.error()))
+
+                # print("Received message: {}".format(msg.value()))
+
+                with placeholder:
+                    data_string_with_bytes_mess = "{}".format(msg.value())
+
+                    data_string_without_bytes_mess = (
+                        data_string_with_bytes_mess.replace(
+                            data_string_with_bytes_mess[0:22], ""
+                        )
+                    )
+
+                    data_string_without_bytes_mess = data_string_without_bytes_mess[:-1]
+                    dict_to_append = json.loads(data_string_without_bytes_mess)
+
+                    st.write()
+                    data.append(dict_to_append["price"])
+
+                # It is important to exit the context of the placeholder in each step of the loop
+                # placeholder object should have the same methods for displaying data as st
+                # placeholder.dataframe(df)
+
+                # Close down consumer to commit final offsets.
+
+            except KeyboardInterrupt:
+                print("Canceled by user.")
+                consumer.close()
+
+        st.bar_chart(data)
+
+    # https://stackoverflow.com/questions/76056824/how-to-consume-the-last-5-minutes-data-in-kafka-using-confluent-kakfa-python-pac
+
+
+async def main():
     placeholder = st.empty()
+    await consume_and_write(placeholder)
 
-    # asyncio not implemented, consumer only works if producer is not triggered. need to get them on separate threads
-    # on_select(option)
 
-    for i in range(5):
-        try:
-            consumer.subscribe(["tumble_interval"], on_assign=reset_offsets)
-
-            msg = consumer.poll()
-
-            if msg is None:
-                pass
-
-            elif msg.error():
-                print("Consumer error: {}".format(msg.error()))
-
-            # print("Received message: {}".format(msg.value()))
-
-            with placeholder:
-                data_string_with_bytes_mess = "{}".format(msg.value())
-
-                data_string_without_bytes_mess = data_string_with_bytes_mess.replace(
-                    data_string_with_bytes_mess[0:22], ""
-                )
-
-                data_string_without_bytes_mess = data_string_without_bytes_mess[:-1]
-                dict_to_append = json.loads(data_string_without_bytes_mess)
-
-                st.write()
-                data.append(dict_to_append["price"])
-
-            # It is important to exit the context of the placeholder in each step of the loop
-            # placeholder object should have the same methods for displaying data as st
-            # placeholder.dataframe(df)
-
-            # Close down consumer to commit final offsets.
-
-        except KeyboardInterrupt:
-            print("Canceled by user.")
-            consumer.close()
-
-    st.bar_chart(data)
-
-# https://stackoverflow.com/questions/76056824/how-to-consume-the-last-5-minutes-data-in-kafka-using-confluent-kakfa-python-pac
+asyncio.run(main())
