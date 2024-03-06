@@ -14,9 +14,6 @@ import json
 from alpaca.data.live import StockDataStream
 
 
-# set up alpaca websocket to receive stock events
-wss_client = StockDataStream(config.ALPACA_KEY, config.ALPACA_SECRET)
-
 # set up kafka client
 config_parser = ConfigParser(interpolation=None)
 config_file = open("config.properties", "r")
@@ -90,6 +87,9 @@ def on_select(stockname):
         )
 
         producer.flush()
+
+    # set up alpaca websocket to receive stock events
+    wss_client = StockDataStream(config.ALPACA_KEY, config.ALPACA_SECRET)
 
     wss_client.subscribe_quotes(quote_data_handler, stockname)
 

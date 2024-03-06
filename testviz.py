@@ -71,7 +71,7 @@ async def consume_and_write(placeholder):
             try:
                 consumer.subscribe(["tumble_interval"], on_assign=reset_offsets)
 
-                msg = consumer.poll()
+                msg = await consumer.poll()
 
                 if msg is None:
                     pass
