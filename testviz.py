@@ -96,7 +96,7 @@ async def display_quotes(component):
 
                 component.bar_chart(data)
 
-            await asyncio.sleep(0)
+            await asyncio.sleep(0.1)
 
         except KeyboardInterrupt:
             print("Canceled by user.")
