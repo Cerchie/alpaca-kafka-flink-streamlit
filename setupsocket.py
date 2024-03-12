@@ -4,20 +4,15 @@ from confluent_kafka.serialization import SerializationContext, MessageField
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.json_schema import JSONSerializer
 from configparser import ConfigParser
-import asyncio
-
 import config
 import srconfig
-import json
-
-
 from alpaca.data.live import StockDataStream
-
 
 # set up alpaca websocket to receive stock events
 wss_client = StockDataStream(config.ALPACA_KEY, config.ALPACA_SECRET)
 
 # set up kafka client
+print("Setting up Kafka client")
 config_parser = ConfigParser(interpolation=None)
 config_file = open("config.properties", "r")
 config_parser.read_file(config_file)
@@ -63,8 +58,7 @@ def serialize_custom_data(custom_data, ctx):
     }
 
 
-def on_select(stockname):
-
+async def on_select(stockname):
     async def quote_data_handler(data):
 
         producer = Producer(client_config)
@@ -74,10 +68,8 @@ def on_select(stockname):
         json_serializer = JSONSerializer(
             schema_str, schema_registry_client, serialize_custom_data
         )
-
         # quote data will arrive here
-        # print(data)
-
+        print(f"data arrived:{data}")
         producer.produce(
             topic=stockname,
             key=stockname,
@@ -86,9 +78,9 @@ def on_select(stockname):
             ),
             on_delivery=delivery_report,
         )
-
+        print(f"Produced quote for {stockname}, value={data.bid_price}")
         producer.flush()
 
     wss_client.subscribe_quotes(quote_data_handler, stockname)
 
-    wss_client.run()
+    await wss_client._run_forever()

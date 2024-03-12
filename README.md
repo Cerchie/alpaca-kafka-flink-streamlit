@@ -79,20 +79,20 @@ Now, run streamlit testviz.py to produce some messages to that topic.
 Then, set up a Flink compute pool _in the same region_ as your cluster. Run these commands in the UI:
 
 ```sql
-CREATE TABLE tumble_interval_keyed
-(`window_start` STRING,`window_end` STRING,`price` DOUBLE, `symbol` STRING, PRIMARY KEY `symbol`) 
-WITH ('value.format' = 'json-registry');
+CREATE TABLE tumble_interval
+(`symbol` STRING, `window_start` STRING,`window_end` STRING,`price` DOUBLE, PRIMARY KEY (`symbol`) NOT ENFORCED)
+    WITH ('value.format' = 'json-registry');
 ```
 
 ```sql
 INSERT INTO tumble_interval
 SELECT symbol, DATE_FORMAT(window_start,'yyyy-MM-dd hh:mm:ss.SSS'), DATE_FORMAT(window_end,'yyyy-MM-dd hh:mm:ss.SSS'), AVG(price)
-  FROM TABLE(
-    TUMBLE(TABLE AAPL, DESCRIPTOR($rowtime), INTERVAL '5' SECONDS))
-  GROUP BY
-  symbol,
-window_start, 
-window_end;
+FROM TABLE(
+        TUMBLE(TABLE AAPL, DESCRIPTOR($rowtime), INTERVAL '5' SECONDS))
+GROUP BY
+    symbol,
+    window_start,
+    window_end;
 
 ```
 
