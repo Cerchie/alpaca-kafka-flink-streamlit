@@ -5,19 +5,22 @@ from confluent_kafka.serialization import SerializationContext, MessageField
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.json_schema import JSONSerializer
 from configparser import ConfigParser
-import config
-import srconfig
 from alpaca.data.live import StockDataStream
+import streamlit as st
 
 # set up alpaca websocket to receive stock events
-wss_client = StockDataStream(config.ALPACA_KEY, config.ALPACA_SECRET)
+wss_client = StockDataStream(st.secrets["ALPACA_KEY"], st.secrets["ALPACA_SECRET"])
 
 # set up kafka client
 print("Setting up Kafka client")
-config_parser = ConfigParser(interpolation=None)
-config_file = open("config.properties", "r")
-config_parser.read_file(config_file)
-client_config = dict(config_parser["kafka_client"])
+config_dict = {
+    "bootstrap.servers": "pkc-921jm.us-east-2.aws.confluent.cloud:9092",
+    "sasl.mechanisms": "PLAIN",
+    "sasl.username": st.secrets["sasl.username"],
+    "sasl.password": st.secrets["sasl.password"],
+    "group.id": "stocks_consumer_group_01",
+}
+client_config = config_dict
 
 # schema for producer matching one in AAPL topic in Confluent Cloud
 schema_str = """{
@@ -62,7 +65,12 @@ def serialize_custom_data(custom_data, ctx):
 async def quote_data_handler(stockname, data):
     producer = Producer(client_config)
 
-    schema_registry_client = SchemaRegistryClient(srconfig.sr_config)
+    srconfig = {
+        "url": st.secrets["SR_URL"],
+        "basic.auth.user.info": st.secrets["basic.auth.user.info"],
+    }
+
+    schema_registry_client = SchemaRegistryClient(srconfig)
 
     json_serializer = JSONSerializer(
         schema_str, schema_registry_client, serialize_custom_data
