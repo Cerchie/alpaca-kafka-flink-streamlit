@@ -103,7 +103,6 @@ async def display_quotes(component):
                 component.bar_chart(data)
 
 
-
         except KeyboardInterrupt:
             print("Canceled by user.")
             consumer.close()
