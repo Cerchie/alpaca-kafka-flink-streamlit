@@ -18,9 +18,10 @@ consumer = Consumer(client_config)
 
 option = st.selectbox(
     "Which stock would you like to see data for?",
-    ("AAPL", "BABA", "SIE", "SPY"),
+    ("AAPL"),
     index=None,
 )
+# , "BABA", "SIE", "SPY"
 
 
 def get_time_offset():
@@ -57,16 +58,16 @@ async def main():
         # We create the placeholder once
         placeholder = st.empty()
 
-        await asyncio.gather(
-            on_select(option),
-            display_quotes(placeholder))
+        await asyncio.gather(on_select(option), display_quotes(placeholder))
 
 
 async def display_quotes(component):
+    component.empty()
     price_history = []
     print("Subscribing to topic")
-    topic_name = "AAPL"
-    consumer.subscribe([topic_name], on_assign=reset_offsets)
+    topic_name = option
+    print(f"tumble_interval_{topic_name}")
+    consumer.subscribe([f"tumble_interval_{topic_name}"], on_assign=reset_offsets)
 
     while True:
         try:
@@ -101,7 +102,6 @@ async def display_quotes(component):
                 # but I think it's easier to just see the price fluctuate in place
                 # data = [last_price]
                 component.bar_chart(data)
-
 
         except KeyboardInterrupt:
             print("Canceled by user.")
