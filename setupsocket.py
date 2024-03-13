@@ -16,8 +16,11 @@ print("Setting up Kafka client")
 config_dict = {
     "bootstrap.servers": "pkc-921jm.us-east-2.aws.confluent.cloud:9092",
     "sasl.mechanisms": "PLAIN",
-    "sasl.username": st.secrets["sasl.username"],
-    "sasl.password": st.secrets["sasl.password"],
+    "security.protocol": "SASL_SSL",
+    "auto.offset.reset": "earliest",
+    "session.timeout.ms": "45000",
+    "sasl.username": st.secrets["SASL_USERNAME"],
+    "sasl.password": st.secrets["SASL_PASSWORD"],
     "group.id": "stocks_consumer_group_01",
 }
 client_config = config_dict
@@ -67,7 +70,7 @@ async def quote_data_handler(stockname, data):
 
     srconfig = {
         "url": st.secrets["SR_URL"],
-        "basic.auth.user.info": st.secrets["basic.auth.user.info"],
+        "basic.auth.user.info": st.secrets["BASIC_AUTH_USER_INFO"],
     }
 
     schema_registry_client = SchemaRegistryClient(srconfig)
