@@ -58,20 +58,27 @@ async def main():
         placeholder = st.empty()
 
         await asyncio.gather(
-            display_quotes(placeholder),
-            on_select(option))
+            on_select(option),
+            display_quotes(placeholder))
 
 
 async def display_quotes(component):
     price_history = []
-    consumer.subscribe(["AAPL"], on_assign=reset_offsets)
+    print("Subscribing to topic")
+    topic_name = "AAPL"
+    consumer.subscribe([topic_name], on_assign=reset_offsets)
 
     while True:
         try:
-            msg = consumer.poll()
+            print("Polling topic")
+            msg = consumer.poll(5)
 
+            print("Pausing")
+            await asyncio.sleep(0.5)
+
+            print("Received message: {}".format(msg))
             if msg is None:
-                pass
+                continue
 
             elif msg.error():
                 print("Consumer error: {}".format(msg.error()))
@@ -93,10 +100,8 @@ async def display_quotes(component):
 
                 # but I think it's easier to just see the price fluctuate in place
                 # data = [last_price]
-
                 component.bar_chart(data)
 
-            await asyncio.sleep(0.1)
 
         except KeyboardInterrupt:
             print("Canceled by user.")

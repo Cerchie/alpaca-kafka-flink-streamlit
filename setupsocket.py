@@ -1,4 +1,5 @@
 # https://pypi.org/project/websocket_client/
+from functools import partial
 from confluent_kafka import Producer
 from confluent_kafka.serialization import SerializationContext, MessageField
 from confluent_kafka.schema_registry import SchemaRegistryClient
@@ -58,29 +59,34 @@ def serialize_custom_data(custom_data, ctx):
     }
 
 
+async def quote_data_handler(stockname, data):
+    producer = Producer(client_config)
+
+    schema_registry_client = SchemaRegistryClient(srconfig.sr_config)
+
+    json_serializer = JSONSerializer(
+        schema_str, schema_registry_client, serialize_custom_data
+    )
+    # quote data will arrive here
+    print(f"data arrived:{data}")
+    producer.produce(
+        topic=stockname,
+        key=stockname,
+        value=json_serializer(
+            data, SerializationContext(stockname, MessageField.VALUE)
+        ),
+        on_delivery=delivery_report,
+    )
+    print(f"Producing quote for {stockname}, value={data.bid_price}")
+    producer.flush()
+
+
 async def on_select(stockname):
-    async def quote_data_handler(data):
+    print(f"Selected stock: {stockname}")
 
-        producer = Producer(client_config)
+    print(f"Subscribing to quote for {stockname}")
+    fn = partial(quote_data_handler, stockname)
+    wss_client.subscribe_quotes(fn, stockname)
 
-        schema_registry_client = SchemaRegistryClient(srconfig.sr_config)
-
-        json_serializer = JSONSerializer(
-            schema_str, schema_registry_client, serialize_custom_data
-        )
-        # quote data will arrive here
-        print(f"data arrived:{data}")
-        producer.produce(
-            topic=stockname,
-            key=stockname,
-            value=json_serializer(
-                data, SerializationContext(stockname, MessageField.VALUE)
-            ),
-            on_delivery=delivery_report,
-        )
-        print(f"Produced quote for {stockname}, value={data.bid_price}")
-        producer.flush()
-
-    wss_client.subscribe_quotes(quote_data_handler, stockname)
-
+    print(f"Run the stream for {stockname}")
     await wss_client._run_forever()
