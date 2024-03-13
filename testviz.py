@@ -3,18 +3,21 @@ import datetime
 import json
 import math
 import streamlit as st
-from configparser import ConfigParser
 from confluent_kafka import Consumer, TopicPartition
 from setupsocket import on_select
 
-config_parser = ConfigParser(interpolation=None)
+config_dict = {
+    "bootstrap.servers": "pkc-921jm.us-east-2.aws.confluent.cloud:9092",
+    "sasl.mechanisms": "PLAIN",
+    "security.protocol": "SASL_SSL",
+    "auto.offset.reset": "earliest",
+    "session.timeout.ms": "45000",
+    "sasl.username": st.secrets["SASL_USERNAME"],
+    "sasl.password": st.secrets["SASL_PASSWORD"],
+    "group.id": "stocks_consumer_group_01",
+}
 
-config_file = open("config.properties", "r")
-config_parser.read_file(config_file)
-client_config = dict(config_parser["kafka_client"])
-print(f"client_config:{client_config}")
-
-consumer = Consumer(client_config)
+consumer = Consumer(config_dict)
 
 option = st.selectbox(
     "Which stock would you like to see data for?",

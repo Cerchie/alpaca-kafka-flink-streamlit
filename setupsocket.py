@@ -17,11 +17,9 @@ config_dict = {
     "bootstrap.servers": "pkc-921jm.us-east-2.aws.confluent.cloud:9092",
     "sasl.mechanisms": "PLAIN",
     "security.protocol": "SASL_SSL",
-    "auto.offset.reset": "earliest",
     "session.timeout.ms": "45000",
     "sasl.username": st.secrets["SASL_USERNAME"],
     "sasl.password": st.secrets["SASL_PASSWORD"],
-    "group.id": "stocks_consumer_group_01",
 }
 client_config = config_dict
 
