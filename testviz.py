@@ -6,6 +6,7 @@ import streamlit as st
 from confluent_kafka import Consumer, TopicPartition
 from setupsocket import on_select
 
+
 config_dict = {
     "bootstrap.servers": "pkc-921jm.us-east-2.aws.confluent.cloud:9092",
     "sasl.mechanisms": "PLAIN",
@@ -21,7 +22,7 @@ consumer = Consumer(config_dict)
 
 option = st.selectbox(
     "Which stock would you like to see data for?",
-    ("AAPL"),
+    ("AAPL", "placeholder_do_not_select"),
     index=None,
 )
 # , "BABA", "SIE", "SPY"
