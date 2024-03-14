@@ -23,6 +23,7 @@ config_dict = {
     "sasl.username": st.secrets["SASL_USERNAME"],
     "sasl.password": st.secrets["SASL_PASSWORD"],
 }
+
 client_config = config_dict
 
 # schema for producer matching one in AAPL topic in Confluent Cloud
@@ -78,7 +79,7 @@ async def quote_data_handler(stockname, data):
     json_serializer = JSONSerializer(
         schema_str, schema_registry_client, serialize_custom_data
     )
-    # quote data will arrive here
+
     # print(f"data arrived:{data}")
     producer.produce(
         topic=stockname,

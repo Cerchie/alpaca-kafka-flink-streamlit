@@ -15,17 +15,21 @@ config_dict = {
     "session.timeout.ms": "45000",
     "sasl.username": st.secrets["SASL_USERNAME"],
     "sasl.password": st.secrets["SASL_PASSWORD"],
-    "group.id": "stocks_consumer_group_02",
+    "group.id": "stocks_consumer_group_05",
 }
 
 consumer = Consumer(config_dict)
 
+st.title("Stock Price Averages")
+st.write(
+    "Each bar represents an average price from the last five seconds of sales. The chart may not show up if trading is closed for the day or otherwise not happening."
+)
+
 option = st.selectbox(
-    "Which stock would you like to see data for?",
+    "Which stock would you like to see the price avg for?",
     ("AAPL", "BABA"),
     index=None,
 )
-# , "BABA", "SIE", "SPY"
 
 
 def get_time_offset():
@@ -55,9 +59,11 @@ def reset_offsets(consumer, partitions):
     )  # (re-)set consumer partition assignments and start consuming
 
 
+# https://stackoverflow.com/questions/76056824/how-to-consume-the-last-5-minutes-data-in-kafka-using-confluent-kakfa-python-pac
+
+
 async def main():
     if isinstance(option, str):
-        st.write("You selected:", option)
 
         # We create the placeholder once
         placeholder = st.empty()
@@ -83,9 +89,6 @@ async def display_quotes(component):
 
             print("Received message: {}".format(msg))
             if msg is None:
-                st.write(
-                    "Received message: None. Likely no stock for this symbol being currently traded."
-                )
                 continue
 
             elif msg.error():
@@ -98,20 +101,52 @@ async def display_quotes(component):
                 )
                 data_string_without_bytes_mess = data_string_without_bytes_mess[:-1]
                 quote_dict = json.loads(data_string_without_bytes_mess)
+
                 last_price = quote_dict["price"]
-                price_history.append(last_price)
+
+                price_history.append(f"${last_price}")
 
                 # uncomment this if you prefer to see the price history.
-                data = price_history
+                # data = price_history
 
                 # but I think it's easier to just see the price fluctuate in place
-                # data = [last_price]
-                component.bar_chart(data)
+                data = {"price_avg": price_history}
+                print("data coming in:", data)
+                component.bar_chart(data, color=["#fb8500"], y=None)
 
         except KeyboardInterrupt:
             print("Canceled by user.")
             consumer.close()
 
 
-# https://stackoverflow.com/questions/76056824/how-to-consume-the-last-5-minutes-data-in-kafka-using-confluent-kakfa-python-pac
+st.subheader(
+    "What's going on behind the scenes of this chart?",
+    divider="rainbow",
+)
+st.image(
+    "./graph.png",
+    caption="chart graphing relationship of different nodes in the data pipeline",
+)
+st.markdown(
+    "First, data is piped from the [Alpaca API](https://docs.alpaca.markets/docs/getting-started) websocket into a Kafka topic located in Confluent Cloud. Next, the data is processed in [Confluent Cloud’s](https://confluent.cloud/) Flink SQL workspace with a query like this."
+)
+st.code(
+    """INSERT INTO tumble_interval
+SELECT symbol, DATE_FORMAT(window_start,'yyyy-MM-dd hh:mm:ss.SSS'), DATE_FORMAT(window_end,'yyyy-MM-dd hh:mm:ss.SSS'), AVG(price)
+FROM TABLE(
+        TUMBLE(TABLE AAPL, DESCRIPTOR($rowtime), INTERVAL '5' SECONDS))
+GROUP BY
+    symbol,
+    window_start,
+    window_end;
+""",
+    language="python",
+)
+st.markdown(
+    "Then, the data is consumed from a Kafka topic backing the FlinkSQL table in Confluent Cloud, and visualized using Streamlit."
+)
+st.markdown(
+    "For more background on this project and to run it for yourself, visit the [GitHub repository](https://github.com/Cerchie/alpaca-kafka-flink-streamlit/tree/main)."
+)
+
 asyncio.run(main())
