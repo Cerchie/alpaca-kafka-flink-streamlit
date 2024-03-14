@@ -15,14 +15,14 @@ config_dict = {
     "session.timeout.ms": "45000",
     "sasl.username": st.secrets["SASL_USERNAME"],
     "sasl.password": st.secrets["SASL_PASSWORD"],
-    "group.id": "stocks_consumer_group_01",
+    "group.id": "stocks_consumer_group_02",
 }
 
 consumer = Consumer(config_dict)
 
 option = st.selectbox(
     "Which stock would you like to see data for?",
-    ("AAPL", "placeholder_do_not_select"),
+    ("AAPL", "BABA"),
     index=None,
 )
 # , "BABA", "SIE", "SPY"
@@ -83,13 +83,13 @@ async def display_quotes(component):
 
             print("Received message: {}".format(msg))
             if msg is None:
-                st.write("Received message: None")
+                st.write(
+                    "Received message: None. Likely no stock for this symbol being currently traded."
+                )
                 continue
 
             elif msg.error():
                 print("Consumer error: {}".format(msg.error()))
-
-            # print("Received message: {}".format(msg.value()))
 
             with component:
                 data_string_with_bytes_mess = "{}".format(msg.value())

@@ -1,5 +1,7 @@
 # https://pypi.org/project/websocket_client/
+import asyncio
 from functools import partial
+import time
 from confluent_kafka import Producer
 from confluent_kafka.serialization import SerializationContext, MessageField
 from confluent_kafka.schema_registry import SchemaRegistryClient
@@ -97,6 +99,6 @@ async def on_select(stockname):
     print(f"Subscribing to quote for {stockname}")
 
     wss_client.subscribe_quotes(fn, stockname)
-    oldstockname = stockname
     print(f"Run the stream for {stockname}")
-    await wss_client._run_forever()
+    wss_client.unsubscribe_quotes(stockname)
+    await wss_client._run_forever(),
