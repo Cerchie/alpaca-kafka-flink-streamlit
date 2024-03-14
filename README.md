@@ -1,3 +1,5 @@
+# 🚧 WIP: README & code not complete
+
 `git clone https://github.com/Cerchie/finnhub.git` && cd finnhub
 
 pip3 install confluent_kafka
