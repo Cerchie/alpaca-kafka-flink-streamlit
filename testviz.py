@@ -83,6 +83,7 @@ async def display_quotes(component):
 
             print("Received message: {}".format(msg))
             if msg is None:
+                st.write("Received message: None")
                 continue
 
             elif msg.error():
