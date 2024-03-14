@@ -65,9 +65,6 @@ def reset_offsets(consumer, partitions):
 async def main():
     if isinstance(option, str):
 
-        # We create the placeholder once
-        placeholder = st.empty()
-
         await asyncio.gather(on_select(option), display_quotes(placeholder))
 
 
@@ -117,6 +114,11 @@ async def display_quotes(component):
         except KeyboardInterrupt:
             print("Canceled by user.")
             consumer.close()
+
+        # We create the placeholder once
+
+
+placeholder = st.empty()
 
 
 st.subheader(
