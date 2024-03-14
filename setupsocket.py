@@ -93,9 +93,6 @@ async def quote_data_handler(stockname, data):
 async def on_select(stockname):
     fn = partial(quote_data_handler, stockname)
     print("ONSELECT CALLED")
-    if wss_client._running:
-        wss_client.unsubscribe_quotes()
-        wss_client.close()
 
     print(f"Subscribing to quote for {stockname}")
 
