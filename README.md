@@ -11,7 +11,7 @@ This project produces stock trade events from the [Alpaca API markets](https://a
 
 ## Step 1: Get set up in Confluent Cloud
 
-Sign up for [Confluent Cloud](https://www.confluent.io/confluent-cloud). Follow the in-product tutorial to create an environment called `stocks_environment`. Skip any prompting or options for stream governance.
+Sign up for [Confluent Cloud](https://www.confluent.io/confluent-cloud). Follow the instructions [here](https://docs.confluent.io/cloud/current/access-management/hierarchy/cloud-environments.html#add-an-environment) to create an environment called `stocks_environment`. Skip any prompting or options for stream governance.
 
 Then, follow [these instructions](https://docs.confluent.io/cloud/current/get-started/index.html#section-1-create-a-cluster-and-add-a-topic) to create a cluster. When you're prompted to select a provider and location, choose AWS's `us-east-2`. 
 
