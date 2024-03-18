@@ -15,6 +15,7 @@ config_dict = {
     "session.timeout.ms": "45000",
     "sasl.username": st.secrets["SASL_USERNAME"],
     "sasl.password": st.secrets["SASL_PASSWORD"],
+    "group.id": "stocks_consumer",
 }
 # https://stackoverflow.com/questions/38032932/attaching-kafaconsumer-assigned-to-a-specific-partition
 consumer = Consumer(config_dict)
