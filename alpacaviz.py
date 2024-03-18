@@ -15,10 +15,10 @@ config_dict = {
     "session.timeout.ms": "45000",
     "sasl.username": st.secrets["SASL_USERNAME"],
     "sasl.password": st.secrets["SASL_PASSWORD"],
-    "group.id": "stocks_consumer_group_05",
 }
-
+# https://stackoverflow.com/questions/38032932/attaching-kafaconsumer-assigned-to-a-specific-partition
 consumer = Consumer(config_dict)
+consumer.assign([TopicPartition("foobar", 3)])
 
 st.title("Stock Price Averages")
 st.write(
@@ -74,7 +74,7 @@ async def display_quotes(component):
     print("Subscribing to topic")
     topic_name = option
     print(f"tumble_interval_{topic_name}")
-    consumer.subscribe([f"tumble_interval_{topic_name}"], on_assign=reset_offsets)
+    consumer.subscribe([f"tumble_interval_{topic_name}"])
 
     while True:
         try:
