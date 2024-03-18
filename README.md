@@ -70,7 +70,7 @@ CREATE TABLE tumble_interval_BABA
 
 You'll need to run these two statements as well:
 
-```
+
 ```sql
 INSERT INTO tumble_interval_AAPL
 SELECT symbol, DATE_FORMAT(window_start,'yyyy-MM-dd hh:mm:ss.SSS'), DATE_FORMAT(window_end,'yyyy-MM-dd hh:mm:ss.SSS'), AVG(price)
