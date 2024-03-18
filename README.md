@@ -1,5 +1,7 @@
 # How to use FlinkSQL with Kafka, Streamlit, and the Alpaca API
 
+Pssst. This app is currently deployed at https://alpaca-kafka-flink-app-nxm6slnynmnn9ldhmcxgbq.streamlit.app/
+
 Learn how to use these 4 technologies together by running this demo yourself! 
 
 This project produces stock trade events from the [Alpaca API markets](https://app.alpaca.markets) websocket to an [Apache Kafka](https://kafka.apache.org/) topic located in [Confluent Cloud](https://www.confluent.io/lp/confluent-cloud). From there, it uses [FlinkSQL](https://nightlies.apache.org/flink/flink-docs-master/docs/dev/table/sql/overview/) in Confluent Cloud to generate 5 sec averages of stock prices over a tumbling window. Then, this app consumes the averages from a backup Kafka topic and displays them using [Streamlit](https://streamlit.io/). 
