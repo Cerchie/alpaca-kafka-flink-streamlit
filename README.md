@@ -118,13 +118,13 @@ Now, create a file named `.streamlit/secrets.toml` (that initial `.` is part of 
 In it, you'll need:
 
 ```
-ALPACA_KEY = YOUR_ALPACA_KEY
-ALPACA_SECRET = YOUR_ALAPA_SECRET
-SASL_USERNAME = YOUR_CONFLUENT_CLOUD_API_KEY
-SASL_PASSWORD = YOUR_CONFLUENT_CLOUD_API_SECRET
-SR_URL =  YOUR_CONFLUENT_CLOUD_BOOTSTRAP_URL
-BASIC_AUTH_USER_INFO = YOUR_CONFLUENT_SCHEMA_REGISTRY_KEY:YOUR_CONFLUENT_SCHEMA_REGISTRY_SECRET
-BOOTSTRAP_URL = YOUR_CONFLUENT_CLOUD_BOOTSTRAP_URL
+ALPACA_KEY = "your_alpaca_key"
+ALPACA_SECRET = "your_alpaca_secret"
+SASL_USERNAME = "your_confluent_cloud_api_key"
+SASL_PASSWORD = "your_confluent_cloud_api_secret"
+SR_URL =  "your_confluent_cloud
+BASIC_AUTH_USER_INFO = "your_confluent_cloud_schema_registry_key:your_confluent_cloud_schema_registry_secret"
+BOOTSTRAP_URL = "your_confluent_cloud_bootstrap_url"
 ```
 Note that the `:` is necessary for `BASIC_AUTH_USER_INFO`. 
 
