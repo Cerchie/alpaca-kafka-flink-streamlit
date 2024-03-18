@@ -113,7 +113,7 @@ then
 
 `pip install -r requirements.txt` 
 
-Now, create a file named `.streamlit/secrets.toml` (that initial `.` is part of the convention.)
+Now, create a file in the root directory named `.streamlit/secrets.toml` (that initial `.` is part of the convention.)
 
 In it, you'll need:
 
@@ -128,4 +128,8 @@ BOOTSTRAP_URL = "your_confluent_cloud_bootstrap_url"
 ```
 Note that the `:` is necessary for `BASIC_AUTH_USER_INFO`. 
 
+You'll need a [Streamlit account](https://streamlit.io/) as well for the secrets to be in the environment. 
+
 Now, run `streamlit run alpacaviz.py` in your root dir in order to run the app. 
+
+To deploy on Streamlit yourself, follow the [instructions here](https://docs.streamlit.io/streamlit-community-cloud/deploy-your-app) and make sure to [include the secrets](https://docs.streamlit.io/streamlit-community-cloud/deploy-your-app/secrets-management) in your settings. 
