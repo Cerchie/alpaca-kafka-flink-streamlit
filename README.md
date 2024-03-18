@@ -1,6 +1,6 @@
 # How to use FlinkSQL with Kafka, Streamlit, and the Alpaca API
 
-Pssst. This app is currently deployed at https://alpaca-kafka-flink-app-nxm6slnynmnn9ldhmcxgbq.streamlit.app/
+Pssst. This app is currently deployed at https://alpaca-kafka-flink-app.streamlit.app/
 
 Learn how to use these 4 technologies together by running this demo yourself! 
 
