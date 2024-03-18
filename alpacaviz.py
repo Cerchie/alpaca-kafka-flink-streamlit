@@ -8,7 +8,7 @@ from setupsocket import on_select
 
 
 config_dict = {
-    "bootstrap.servers": "pkc-921jm.us-east-2.aws.confluent.cloud:9092",
+    "bootstrap.servers": st.secrets["BOOTSTRAP_URL"],
     "sasl.mechanisms": "PLAIN",
     "security.protocol": "SASL_SSL",
     "auto.offset.reset": "earliest",
