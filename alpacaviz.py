@@ -13,7 +13,7 @@ config_dict = {
     "bootstrap.servers": st.secrets["BOOTSTRAP_URL"],
     "sasl.mechanisms": "PLAIN",
     "security.protocol": "SASL_SSL",
-    "auto.offset.reset": "latest",
+    "auto.offset.reset": "earliest",
     "session.timeout.ms": "45000",
     "sasl.username": st.secrets["SASL_USERNAME"],
     "sasl.password": st.secrets["SASL_PASSWORD"],
@@ -150,6 +150,9 @@ st.markdown(
 )
 st.markdown(
     "For more background on this project and to run it for yourself, visit the [GitHub repository](https://github.com/Cerchie/alpaca-kafka-flink-streamlit/tree/main)."
+)
+st.markdown(
+    "Note: the Kafka consumer for this project reads from the earlist offset on Mar 13"
 )
 
 asyncio.run(main())
