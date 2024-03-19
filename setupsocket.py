@@ -68,7 +68,7 @@ def serialize_custom_data(custom_data, ctx):
 
 async def quote_data_handler(stockname, data):
     producer = Producer(client_config)
-
+    print("DATADATADATA", data)
     srconfig = {
         "url": st.secrets["SR_URL"],
         "basic.auth.user.info": st.secrets["BASIC_AUTH_USER_INFO"],

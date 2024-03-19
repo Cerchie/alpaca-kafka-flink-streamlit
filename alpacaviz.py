@@ -2,20 +2,22 @@ import asyncio
 import datetime
 import json
 import math
+import pandas as pd
 import streamlit as st
 from confluent_kafka import Consumer, TopicPartition
 from setupsocket import on_select
+import altair as alt
 
 
 config_dict = {
     "bootstrap.servers": st.secrets["BOOTSTRAP_URL"],
     "sasl.mechanisms": "PLAIN",
     "security.protocol": "SASL_SSL",
-    "auto.offset.reset": "earliest",
+    "auto.offset.reset": "latest",
     "session.timeout.ms": "45000",
     "sasl.username": st.secrets["SASL_USERNAME"],
     "sasl.password": st.secrets["SASL_PASSWORD"],
-    "group.id": "stocks_consumer",
+    "group.id": "stocks_consumer_02",
 }
 # https://stackoverflow.com/questions/38032932/attaching-kafaconsumer-assigned-to-a-specific-partition
 consumer = Consumer(config_dict)
@@ -33,36 +35,6 @@ option = st.selectbox(
 )
 
 
-def get_time_offset():
-    """Returns the POSIX epoch representation (in milliseconds) of the datetime 5 minutes prior to being called"""
-    delta = datetime.timedelta(hours=5)
-    now = datetime.datetime.now(
-        datetime.timezone.utc
-    )  # TZ-aware object to simplify POSIX epoch conversion
-    prior = now - delta
-    return math.floor(
-        prior.timestamp() * 1000
-    )  # convert seconds to milliseconds for Consumer.offsets_for_times()
-
-
-def reset_offsets(consumer, partitions):
-    """Resets the offsets of the provided partitions to the first offsets found corresponding to timestamps greater
-    than or equal to 5 minutes ago."""
-    time_offset = get_time_offset()
-    search_partitions = [
-        TopicPartition(p.topic, p.partition, time_offset) for p in partitions
-    ]  # new TPs with offset= time_offset
-    time_offset_partitions = consumer.offsets_for_times(
-        search_partitions
-    )  # find TPs with timestamp of earliest offset >= time_offset
-    consumer.assign(
-        time_offset_partitions
-    )  # (re-)set consumer partition assignments and start consuming
-
-
-# https://stackoverflow.com/questions/76056824/how-to-consume-the-last-5-minutes-data-in-kafka-using-confluent-kakfa-python-pac
-
-
 async def main():
     if isinstance(option, str):
 
@@ -72,6 +44,7 @@ async def main():
 async def display_quotes(component):
     component.empty()
     price_history = []
+    window_history = []
     print("Subscribing to topic")
     topic_name = option
     consumer.assign([TopicPartition(f"tumble_interval_{topic_name}", 3)])
@@ -103,15 +76,41 @@ async def display_quotes(component):
 
                 last_price = quote_dict["price"]
 
-                price_history.append(f"${last_price}")
+                window_end = quote_dict["window_end"]
 
-                # uncomment this if you prefer to see the price history.
-                # data = price_history
+                window_end_string = window_end[:0] + window_end[10:]
 
-                # but I think it's easier to just see the price fluctuate in place
-                data = {"price_avg": price_history}
-                print("data coming in:", data)
-                component.bar_chart(data, color=["#fb8500"], y=None)
+                price_history.append(last_price)
+                window_history.append(window_end_string)
+
+                data = pd.DataFrame(
+                    {
+                        "price_in_USD": price_history,
+                        "window_end": window_history,
+                    },
+                )
+
+                domain_end = max(price_history)
+                domain_start = min(price_history)
+
+                chart = (
+                    alt.Chart(data)
+                    .mark_line()
+                    .encode(
+                        x="window_end",
+                        y=alt.Y(
+                            "price_in_USD",
+                            scale=alt.Scale(domain=[domain_start, domain_end]),
+                        ),
+                    )
+                    .transform_window(
+                        rank="rank()",
+                        sort=[alt.SortField("window_end", order="descending")],
+                    )
+                    .transform_filter((alt.datum.rank < 20))
+                )
+
+                st.altair_chart(chart, theme=None, use_container_width=True)
 
         except KeyboardInterrupt:
             print("Canceled by user.")
