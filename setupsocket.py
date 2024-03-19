@@ -68,7 +68,6 @@ def serialize_custom_data(custom_data, ctx):
 
 async def quote_data_handler(stockname, data):
     producer = Producer(client_config)
-    print("DATADATADATA", data)
     srconfig = {
         "url": st.secrets["SR_URL"],
         "basic.auth.user.info": st.secrets["BASIC_AUTH_USER_INFO"],
@@ -79,8 +78,6 @@ async def quote_data_handler(stockname, data):
     json_serializer = JSONSerializer(
         schema_str, schema_registry_client, serialize_custom_data
     )
-
-    # print(f"data arrived:{data}")
     producer.produce(
         topic=stockname,
         key=stockname,
@@ -89,7 +86,6 @@ async def quote_data_handler(stockname, data):
         ),
         on_delivery=delivery_report,
     )
-    # print(f"Producing quote for {stockname}, value={data.bid_price}")
     producer.flush()
 
 
@@ -101,5 +97,4 @@ async def on_select(stockname):
 
     wss_client.subscribe_quotes(fn, stockname)
     print(f"Run the stream for {stockname}")
-    wss_client.unsubscribe_quotes(stockname)
     await wss_client._run_forever(),

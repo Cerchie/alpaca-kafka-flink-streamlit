@@ -12,8 +12,6 @@ import altair as alt
 
 
 # create new name for consumer on each start so that Kafka can start from beginning each time
-
-
 def randomword(length):
     letters = string.ascii_lowercase
     return "".join(random.choice(letters) for i in range(length))
@@ -35,12 +33,12 @@ consumer = Consumer(config_dict)
 
 st.title("Stock Price Averages")
 st.write(
-    "Each bar represents an average price from the last five seconds of sales. The chart may not show up if trading is closed for the day or otherwise not happening."
+    "View tumbling averages for AAPL stock. The chart may not show up if trading is closed for the day or otherwise not happening."
 )
 
 option = st.selectbox(
-    "Which stock would you like to see the price avg for?",
-    ("AAPL", "BABA"),
+    "Start viewing stock for:",
+    (["AAPL"]),
     index=None,
 )
 
@@ -55,18 +53,16 @@ async def display_quotes(component):
     component.empty()
     price_history = []
     window_history = []
-    print("Subscribing to topic")
     topic_name = option
     consumer.assign([TopicPartition(f"tumble_interval_{topic_name}", 3)])
-    print(f"tumble_interval_{topic_name}")
     consumer.subscribe([f"tumble_interval_{topic_name}"])
 
     while True:
         try:
-            print("Polling topic")
+            # print("Polling topic")
             msg = consumer.poll(5)
 
-            print("Pausing")
+            # print("Pausing")
             await asyncio.sleep(0.5)
 
             print("Received message: {}".format(msg))
