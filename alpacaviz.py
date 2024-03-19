@@ -46,7 +46,7 @@ option = st.selectbox(
 async def main():
     if isinstance(option, str):
 
-        await asyncio.gather(on_select(option), display_quotes(placeholder))
+        await display_quotes(placeholder)
 
 
 async def display_quotes(component):
