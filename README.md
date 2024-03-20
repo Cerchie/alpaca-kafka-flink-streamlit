@@ -1,27 +1,78 @@
 # How to use FlinkSQL with Kafka, Streamlit, and the Alpaca API
 
-Pssst. This app is currently deployed at https://alpaca-kafka-flink-app.streamlit.app/
+Pssst. A simulation of this app is currently deployed at https://st-flink-kafka-simulation.streamlit.app/
 
 Learn how to use these 4 technologies together by running this demo yourself! 
 
-This project produces stock trade events from the [Alpaca API markets](https://app.alpaca.markets) websocket to an [Apache Kafka](https://kafka.apache.org/) topic located in [Confluent Cloud](https://www.confluent.io/lp/confluent-cloud). From there, it uses [FlinkSQL](https://nightlies.apache.org/flink/flink-docs-master/docs/dev/table/sql/overview/) in Confluent Cloud to generate 5 sec averages of stock prices over a tumbling window. Then, this app consumes the averages from a backup Kafka topic and displays them using [Streamlit](https://streamlit.io/). 
+In this project you'll produce stock trade events from the [Alpaca API markets](https://app.alpaca.markets) websocket to an [Apache Kafka](https://kafka.apache.org/) topic located in [Confluent Cloud](https://www.confluent.io/lp/confluent-cloud). From there, use [FlinkSQL](https://nightlies.apache.org/flink/flink-docs-master/docs/dev/table/sql/overview/) in Confluent Cloud to generate 5 sec averages of stock prices over a tumbling window. Then, you'll consume the averages from a backup Kafka topic and display them using [Streamlit](https://streamlit.io/). 
 
 <img width="718" alt="graph of the 4 technologies" src="https://github.com/Cerchie/alpaca-kafka-flink-streamlit/assets/54046179/7600d717-69bc-46c5-8679-d8d65b9ce810">
 
 
 ## Step 1: Get set up in Confluent Cloud
 
-Sign up for [Confluent Cloud](https://www.confluent.io/confluent-cloud). Follow the instructions [here](https://docs.confluent.io/cloud/current/access-management/hierarchy/cloud-environments.html#add-an-environment) to create an environment called `stocks_environment`. Skip any prompting or options for stream governance.
+Sign up for [Confluent Cloud](https://www.confluent.io/confluent-cloud). 
 
-Then, follow [these instructions](https://docs.confluent.io/cloud/current/get-started/index.html#section-1-create-a-cluster-and-add-a-topic) to create a cluster. When you're prompted to select a provider and location, choose AWS's `us-east-2`. 
+To add an environment:
 
-[Create a Confluent Cloud API key](https://docs.confluent.io/cloud/current/access-management/authenticate/api-keys/api-keys.html#cloud-cloud-api-keys) and save it. 
+- Open the Confluent Cloud Console and go to the Environments page at https://confluent.cloud/environments.
+- Click 'Add cloud environment'.
+- Enter a name for the environment: `stocks_environment`
+- Click 'Create'.
 
-[Create 2 topics](https://docs.confluent.io/cloud/current/get-started/index.html#section-1-create-a-cluster-and-add-a-topic) with one partition each named `AAPL` and `BABA`. 
+Skip any prompting or options for stream governance.
+
+Then, create a cluster inside your environment.
+
+- Click 'Add cluster'.
+- On the 'Create cluster' page, for the 'Basic' cluster, select 'Begin configuration'.
+- When you're prompted to select a provider and location, choose AWS's `us-east-2`.
+- Select 'Continue'.
+- Specify a cluster name, review the configuration and cost information, and then select 'Launch cluster'.
+- Depending on the chosen cloud provider and other settings, it may take a few minutes to provision your cluster, but after the cluster has provisioned, the 'Cluster Overview' page displays.
+  
+
+Create a Confluent Cloud API key and save it. 
+
+- From the 'Administration' menu, click 'Cloud API keys' or go to https://confluent.cloud/settings/api-keys.
+
+- Click 'Add key'.
+
+- Choose to create the key associated with your user account.
+
+- The API key and secret are generated and displayed.
+
+- Click 'Copy' to copy the key and secret to a secure location.
+
+*Important*
+
+_The secret for the key is only exposed initially in the Create API key dialog and cannot be viewed or retrieved later from the web interface. Store the secret and its corresponding key in a secure location. Do not share the secret for your API key._
+
+- (Optional, but recommended) Enter a description of the API key that describes how you intend to use it, so you can distinguish it from other API keys.
+
+- Select the confirmation check box that you have saved your key and secret.
+
+- Click 'Save'. The key is added to the keys table.
+
+Create 2 topics with one partition each named `AAPL` and `BABA`. 
+
+- From the navigation menu, click 'Topics', and then click 'Create topic'.
+- In the Topic name field, type “AAPL”. Change the 'Partitions' field from 6 to 1. Then select 'Create with defaults'.
+- Repeat the process for a topic named "BABA".
 
 [Create an API key](https://docs.confluent.io/cloud/current/get-started/schema-registry.html#create-an-api-key-for-ccloud-sr) for Schema Registry. 
 
-For each topic, [set a JSON schema](https://docs.confluent.io/cloud/current/sr/schemas-manage.html#create-a-topic-schema):
+- In the environment for which you want to set up Schema Registry, find 'Credentials' on the right side panel and click <someNumber> keys to bring up the API credentials dialog. (If you are just getting started, click 0 keys.)
+- Click 'Add key' to create a new Schema Registry API key.
+- When the API Key and API Secret are saved, click the checkbox next to 'I have saved my API key and secret and am ready to continue', and click 'Continue'. Your new Schema Registry key is shown on the Schema Registry API access key list.
+
+For each topic, set a JSON schema:
+
+- From the navigation menu, click 'Topics', then click a topic to select it (or create a new one).
+- Click the 'Schema' tab.
+- Click 'Set a schema'. The Schema editor appears.
+- Select a schema type: JSON.
+- The basic structure of a schema appears prepopulated in the editor as a starting point. Erase and enter the following schema in the editor:
 
 ```json
 {
@@ -47,6 +98,7 @@ For each topic, [set a JSON schema](https://docs.confluent.io/cloud/current/sr/s
   "type": "object"
 }
 ```
+- Click Create.
 
 There are two urls you'll need later. Your bootstrap server url can be found under Cluster Overview -> Cluster Settings, and your Schema Registry URL is on the right under the Stream Governance API widget, named 'Endpoint'. 
 
