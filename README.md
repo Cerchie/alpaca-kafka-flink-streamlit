@@ -34,6 +34,8 @@ Skip any prompting or options for stream governance.
 
 ### Create a Confluent Cloud API key and save it. 
 
+Note: if you have more than one environment, follow the secondary set of instructions below. 
+
 - From the 'Administration' menu, click 'Cloud API keys' or go to https://confluent.cloud/settings/api-keys.
 
 - Click 'Add key'.
@@ -53,6 +55,19 @@ _The secret for the key is only exposed initially in the Create API key dialog a
 - Select the confirmation check box that you have saved your key and secret.
 
 - Click 'Save'. The key is added to the keys table.
+
+_Instructions for if you have more than one environment:_
+
+- go to the Environments page at https://confluent.cloud/environments and select the environment.
+- Select the Cluster.
+- Select 'API Keys' then under 'Cluster Overview'.
+- Click '+ Add key'. The API key and secret are generated and displayed.
+- Click 'Copy' to copy the key and secret to a secure location.
+
+The secret for the key is only displayed in the 'Create API key' dialog and cannot be viewed or retrieved later. Store the API key and secret in a secure location. Do not share the secret for your API key.
+
+- (Optional, but recommended) Enter a description of the API key that describes how you intend to use it, so you can distinguish it from other API keys. Confirm that you have saved your key and secret.
+- Click 'Continue'. The key is added to the API keys table.
 
 ### Create 1 topics with 1 partition each named `AAPL`. 
 
