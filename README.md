@@ -13,7 +13,7 @@ In this project you'll produce stock trade events from the [Alpaca API markets](
 
 Sign up for [Confluent Cloud](https://www.confluent.io/confluent-cloud). 
 
-To add an environment:
+## To add an environment:
 
 - Open the Confluent Cloud Console and go to the Environments page at https://confluent.cloud/environments.
 - Click 'Add cloud environment'.
@@ -22,7 +22,7 @@ To add an environment:
 
 Skip any prompting or options for stream governance.
 
-Then, create a cluster inside your environment.
+## Then, create a cluster inside your environment.
 
 - Click 'Add cluster'.
 - On the 'Create cluster' page, for the 'Basic' cluster, select 'Begin configuration'.
@@ -32,7 +32,7 @@ Then, create a cluster inside your environment.
 - Depending on the chosen cloud provider and other settings, it may take a few minutes to provision your cluster, but after the cluster has provisioned, the 'Cluster Overview' page displays.
   
 
-Create a Confluent Cloud API key and save it. 
+## Create a Confluent Cloud API key and save it. 
 
 - From the 'Administration' menu, click 'Cloud API keys' or go to https://confluent.cloud/settings/api-keys.
 
@@ -54,19 +54,18 @@ _The secret for the key is only exposed initially in the Create API key dialog a
 
 - Click 'Save'. The key is added to the keys table.
 
-Create 2 topics with one partition each named `AAPL` and `BABA`. 
+## Create 1 topics with 1 partition each named `AAPL`. 
 
 - From the navigation menu, click 'Topics', and then click 'Create topic'.
 - In the Topic name field, type “AAPL”. Change the 'Partitions' field from 6 to 1. Then select 'Create with defaults'.
-- Repeat the process for a topic named "BABA".
 
-[Create an API key](https://docs.confluent.io/cloud/current/get-started/schema-registry.html#create-an-api-key-for-ccloud-sr) for Schema Registry. 
+## Create an API key for Schema Registry. 
 
 - In the environment for which you want to set up Schema Registry, find 'Credentials' on the right side panel and click <someNumber> keys to bring up the API credentials dialog. (If you are just getting started, click 0 keys.)
 - Click 'Add key' to create a new Schema Registry API key.
 - When the API Key and API Secret are saved, click the checkbox next to 'I have saved my API key and secret and am ready to continue', and click 'Continue'. Your new Schema Registry key is shown on the Schema Registry API access key list.
 
-For each topic, set a JSON schema:
+## For the topic, set a JSON schema:
 
 - From the navigation menu, click 'Topics', then click a topic to select it (or create a new one).
 - Click the 'Schema' tab.
@@ -100,27 +99,45 @@ For each topic, set a JSON schema:
 ```
 - Click Create.
 
-There are two urls you'll need later. Your bootstrap server url can be found under Cluster Overview -> Cluster Settings, and your Schema Registry URL is on the right under the Stream Governance API widget, named 'Endpoint'. 
+_There are two urls you'll need later. Your bootstrap server url can be found under Cluster Overview -> Cluster Settings, and your Schema Registry URL is on the right under the Stream Governance API widget, named 'Endpoint'._
 
-[Create a Flink compute pool](https://docs.confluent.io/cloud/current/flink/operate-and-deploy/create-compute-pool.html#create-a-af-compute-pool-in-ccloud-console). Name it `stocks_compute_pool`.
+## Create a Flink compute pool. 
 
-[Run these two](https://docs.confluent.io/cloud/current/flink/get-started/quick-start-cloud-console.html#step-2-run-sql-statements) `CREATE table` statements in your FlinkSQL workspace:
+- In the navigation menu, click 'Environments' and click the tile for the environment where you want to use Flink SQL.
+
+- In the environment details page, click 'Flink'.
+
+- In the Flink page, click 'Compute pools', if it’s not selected already.
+
+- Click 'Create compute pool' to open the 'Create compute pool' page.
+
+- In the 'Region' dropdown, select the region that hosts the data you want to process with SQL. Click 'Continue'.
+
+*Important*
+_This region must the same region as the one in which you created your cluster, that is, AWS's `us-east-2`_
+
+- In the 'Pool' name textbox, enter “stocks-compute-pool”.
+
+- In the 'Max CFUs' dropdown, select 10. 
+
+- Click 'Continue', and on the 'Review and create' page, click 'Finish'.
+
+- A tile for your compute pool appears on the Flink page. It shows the pool in the Provisioning state. It may take a few minutes for the pool to enter the Running state.
+
+## Run FlinkSQL
+
+In the cell of the new workspace, you can start running SQL statements. Copy and paste this statement into the workspace:
+
+
 
 ```sql
 CREATE TABLE tumble_interval_AAPL
 (`symbol` STRING, `window_start` STRING,`window_end` STRING,`price` DOUBLE, PRIMARY KEY (`symbol`) NOT ENFORCED)
     WITH ('value.format' = 'json-registry');
 ```
+- Click 'Run'.
 
-and
-
-```sql
-CREATE TABLE tumble_interval_BABA
-(`symbol` STRING, `window_start` STRING,`window_end` STRING,`price` DOUBLE, PRIMARY KEY (`symbol`) NOT ENFORCED)
-    WITH ('value.format' = 'json-registry');
-```
-
-You'll need to run these two statements as well:
+You'll need to run this statement as well. Click the '+' symbol to add a statement in the workspace.
 
 
 ```sql
@@ -135,19 +152,7 @@ GROUP BY
 
 ```
 
-and
-
-```sql
-INSERT INTO tumble_interval_BABA
-SELECT symbol, DATE_FORMAT(window_start,'yyyy-MM-dd hh:mm:ss.SSS'), DATE_FORMAT(window_end,'yyyy-MM-dd hh:mm:ss.SSS'), AVG(price)
-FROM TABLE(
-        TUMBLE(TABLE AAPL, DESCRIPTOR($rowtime), INTERVAL '5' SECONDS))
-GROUP BY
-    symbol,
-    window_start,
-    window_end;
-
-```
+Note: no data will show up in these Kafka topics or Flink tables until you run the app.
 
 ## Step 2: Your Alpaca credentials
 
