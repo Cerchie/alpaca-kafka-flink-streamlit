@@ -69,10 +69,10 @@ The secret for the key is only displayed in the 'Create API key' dialog and cann
 - (Optional, but recommended) Enter a description of the API key that describes how you intend to use it, so you can distinguish it from other API keys. Confirm that you have saved your key and secret.
 - Click 'Continue'. The key is added to the API keys table.
 
-### Create 1 topics with 1 partition each named `AAPL`. 
+### Create 1 topic with 1 partition each named `SPY`. 
 
 - From the navigation menu, click 'Topics', and then click 'Create topic'.
-- In the Topic name field, type “AAPL”. Change the 'Partitions' field from 6 to 1. Then select 'Create with defaults'.
+- In the Topic name field, type “SPY”. Change the 'Partitions' field from 6 to 1. Then select 'Create with defaults'.
 
 ### Create an API key for Schema Registry. 
 
@@ -148,7 +148,7 @@ In the cell of the new workspace, you can start running SQL statements. Copy and
 
 
 ```sql
-CREATE TABLE tumble_interval_AAPL
+CREATE TABLE tumble_interval_SPY
 (`symbol` STRING, `window_start` STRING,`window_end` STRING,`price` DOUBLE, PRIMARY KEY (`symbol`) NOT ENFORCED)
     WITH ('value.format' = 'json-registry');
 ```
@@ -160,10 +160,10 @@ You'll need to run this statement as well. Click the '+' symbol to add a stateme
 
 
 ```sql
-INSERT INTO tumble_interval_AAPL
+INSERT INTO tumble_interval_SPY
 SELECT symbol, DATE_FORMAT(window_start,'yyyy-MM-dd hh:mm:ss.SSS'), DATE_FORMAT(window_end,'yyyy-MM-dd hh:mm:ss.SSS'), AVG(price)
 FROM TABLE(
-        TUMBLE(TABLE AAPL, DESCRIPTOR($rowtime), INTERVAL '5' SECONDS))
+        TUMBLE(TABLE SPY, DESCRIPTOR($rowtime), INTERVAL '5' SECONDS))
 GROUP BY
     symbol,
     window_start,
@@ -171,7 +171,7 @@ GROUP BY
 
 ```
 
-The above statement inserts data into the table you just created. Every five seconds, it takes the average for the AAPL stock price and adds it to the `tumble_interval_AAPL` table. 
+The above statement inserts data into the table you just created. Every five seconds, it takes the average for the SPY stock price and adds it to the `tumble_interval_SPY` table. 
 
 Note: no data will show up in these Kafka topics or Flink tables until you run the app.
 

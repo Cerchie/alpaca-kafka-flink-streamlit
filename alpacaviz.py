@@ -1,7 +1,5 @@
 import asyncio
-import datetime
 import json
-import math
 import random
 import string
 import pandas as pd
@@ -9,12 +7,6 @@ import streamlit as st
 from confluent_kafka import Consumer, TopicPartition
 from setupsocket import on_select
 import altair as alt
-
-
-# create new name for consumer on each start so that Kafka can start from beginning each time
-def randomword(length):
-    letters = string.ascii_lowercase
-    return "".join(random.choice(letters) for i in range(length))
 
 
 config_dict = {
@@ -25,27 +17,26 @@ config_dict = {
     "session.timeout.ms": "45000",
     "sasl.username": st.secrets["SASL_USERNAME"],
     "sasl.password": st.secrets["SASL_PASSWORD"],
-    "group.id": "consumer" + f"{randomword(2)}",
+    "group.id": "consumer_of_stocks",
 }
-# https://stackoverflow.com/questions/38032932/attaching-kafaconsumer-assigned-to-a-specific-partition
-consumer = Consumer(config_dict)
 
+consumer = Consumer(config_dict)
 
 st.title("Stock Price Averages")
 st.write(
-    "View tumbling averages for AAPL stock. The chart may not show up if trading is closed for the day or otherwise not happening."
+    "View tumbling averages for SPY stock. The chart may not show up if trading is closed for the day or otherwise not happening."
 )
 
 option = st.selectbox(
     "Start viewing stock for:",
-    (["AAPL"]),
+    (["SPY"]),
     index=None,
 )
 
 
 async def main():
     if isinstance(option, str):
-
+        # ordering the coroutines
         await asyncio.gather(on_select(option), display_quotes(placeholder))
 
 
@@ -54,15 +45,17 @@ async def display_quotes(component):
     price_history = []
     window_history = []
     topic_name = option
-    consumer.assign([TopicPartition(f"tumble_interval_{topic_name}", 3)])
-    consumer.subscribe([f"tumble_interval_{topic_name}"])
+
+    # starting from a specific partition here, it may be different depending on the topic so try a few out or just start from the beginning with the auto.offset.reset config
+    partition = TopicPartition(f"tumble_interval_{topic_name}", 0, 7)
+    consumer.assign([partition])
+    consumer.seek(partition)
 
     while True:
         try:
-            # print("Polling topic")
-            msg = consumer.poll(5)
 
-            # print("Pausing")
+            msg = consumer.poll(0.1)
+
             await asyncio.sleep(0.5)
 
             print("Received message: {}".format(msg))
@@ -73,6 +66,7 @@ async def display_quotes(component):
                 print("Consumer error: {}".format(msg.error()))
 
             with component:
+                # remove byte mess caused by json_registry in Flink processing vs json schema in consumer
                 data_string_with_bytes_mess = "{}".format(msg.value())
                 data_string_without_bytes_mess = data_string_with_bytes_mess.replace(
                     data_string_with_bytes_mess[0:22], ""
@@ -89,6 +83,7 @@ async def display_quotes(component):
                 price_history.append(last_price)
                 window_history.append(window_end_string)
 
+                # create data frame for altair to use
                 data = pd.DataFrame(
                     {
                         "price_in_USD": price_history,
@@ -143,7 +138,7 @@ st.code(
     """INSERT INTO tumble_interval
 SELECT symbol, DATE_FORMAT(window_start,'yyyy-MM-dd hh:mm:ss.SSS'), DATE_FORMAT(window_end,'yyyy-MM-dd hh:mm:ss.SSS'), AVG(price)
 FROM TABLE(
-        TUMBLE(TABLE AAPL, DESCRIPTOR($rowtime), INTERVAL '5' SECONDS))
+        TUMBLE(TABLE SPY, DESCRIPTOR($rowtime), INTERVAL '5' SECONDS))
 GROUP BY
     symbol,
     window_start,

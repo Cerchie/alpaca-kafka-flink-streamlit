@@ -26,7 +26,7 @@ config_dict = {
 
 client_config = config_dict
 
-# schema for producer matching one in AAPL topic in Confluent Cloud
+# schema for producer matching one in SPY topic in Confluent Cloud
 schema_str = """{
   "$id": "http://example.com/myURI.schema.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
@@ -67,6 +67,8 @@ def serialize_custom_data(custom_data, ctx):
 
 
 async def quote_data_handler(stockname, data):
+    # this will run when `wss_client.subscribe_quotes(fn, stockname)` is called
+
     producer = Producer(client_config)
     srconfig = {
         "url": st.secrets["SR_URL"],
@@ -91,10 +93,9 @@ async def quote_data_handler(stockname, data):
 
 async def on_select(stockname):
     fn = partial(quote_data_handler, stockname)
-    print("ONSELECT CALLED")
 
     print(f"Subscribing to quote for {stockname}")
 
     wss_client.subscribe_quotes(fn, stockname)
-    print(f"Run the stream for {stockname}")
+
     await wss_client._run_forever(),
