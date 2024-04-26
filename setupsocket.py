@@ -25,7 +25,7 @@ config_dict = {
 }
 
 client_config = config_dict
-
+producer = Producer(client_config)
 # schema for producer matching one in SPY topic in Confluent Cloud
 schema_str = """{
   "$id": "http://example.com/myURI.schema.json",
@@ -69,7 +69,7 @@ def serialize_custom_data(custom_data, ctx):
 async def quote_data_handler(stockname, data):
     # this will run when `wss_client.subscribe_quotes(fn, stockname)` is called
 
-    producer = Producer(client_config)
+
     srconfig = {
         "url": st.secrets["SR_URL"],
         "basic.auth.user.info": st.secrets["BASIC_AUTH_USER_INFO"],
